@@ -54,6 +54,20 @@
                 </div>
             </div>
         </div>
+        <!-- Modal authUrl -->
+        <div class="modal" id="authUrlModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Segui il seguente URL per autorizzare Google Calendar</h5>
+                  <button type="button" id="closeModalAuthUrlBtn" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <p id="authUrlSpace"></p>
+                </div>
+              </div>
+            </div>
+          </div>
 
         <div id="formRecipeDiv" class="container">
             <div class="row">
@@ -68,7 +82,7 @@
                 <div class="col">
                     <button type="button" id="recipeBtn" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#recipeListModal">Aggiungi Ricetta</button>
                     <button type="button" id="ingBtn" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ingListModal">Aggiungi Ingrediente</button>
-                    <button type="button" id="calendarBtn" class="btn btn-danger">Salva in Calendar</button>
+                    <button type="button" id="calendarBtn" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#authUrlModal">Salva in Calendar</button>
                     <!-- <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
                     <!-- <button type="button" id="recipeBtnOffline" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#recipeListModal">Get Recipe Offline</button> -->
                 </div>
