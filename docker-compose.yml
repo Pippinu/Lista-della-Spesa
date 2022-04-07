@@ -1,0 +1,71 @@
+# The specification version of docker-compose
+version: "3.9"
+# The collection of applications composing this service
+services:
+  # # The NGINX custom container, and the name, web, will function as the host name of the container
+  web:
+    # Instead of referencing image: nginx:mainline-alpine here, use build to
+    # reference the current directory (.), which will look for a dockerfile
+    # by default.
+    build: .
+    # Map web files in .nginx to the root of nginx
+    volumes:
+      - ./nginx/static:/usr/share/nginx/html
+    # The external port mapping to internal port mapping
+    ports:
+      - "80:80"
+    container_name: nginx
+
+  # The name, php, will also function as the host name of the container
+  # php:
+  #   image: php:fpm-alpine
+  #   ports:
+  #     - "9000:9000"
+  #   # Map php files in .nginx/php to the root of nginx
+  #   volumes:
+  #     - ./nginx/php:/usr/share/nginx/html
+  #   container_name: php
+
+  rabbitmq:
+    image: rabbitmq:latest
+    ports:
+      - "55672:5672"
+    container_name: rabbitMQ
+
+  couchserver:
+    image: couchdb
+    restart: always
+    ports:
+      - "5984:5984"
+    environment:
+      - COUCHDB_USER=admin
+      - COUCHDB_PASSWORD=password
+    volumes:
+        - ./dbdata:/opt/couchdb/data
+    container_name: CouchDB
+
+  express_server:
+    build: ./nginx/express/
+    # 8888 o 3000(default express port)?
+    ports: 
+      - "8888:8888"
+    volumes:
+      - ./nginx/express:/app
+    command: node ./server.js
+    container_name: expressServer
+  
+  rabbitmq_cache:
+    build: ./nginx/rabbitCache
+    volumes:
+      - ./nginx/rabbitCache:/rabbitmqcache
+    command: 
+      - node ./DBCacheReceiver.js
+    container_name: rabbitCache
+
+  rabbitmq_log:
+    build: ./nginx/rabbitLog
+    volumes:
+      - ./nginx/rabbitLog:/rabbitmqlog
+    command: 
+      - node ./DBLogReceiver.js
+    container_name: rabbitLog
