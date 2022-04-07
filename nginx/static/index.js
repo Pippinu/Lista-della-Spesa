@@ -360,7 +360,14 @@ $(document).ready(()=> {
         })
 
         // Invio sotto forma di stringa il file JSON a server.js cosi da salvarlo su calendar
-        axiosAddEventCalendar(JSON.stringify(dataRecipes)).then(res => {console.log(res.data)});
+        let authUrl = axiosAddEventCalendar(JSON.stringify(dataRecipes)).then(res => {console.log(res.data)});
+
+        // Spawn modal per autorizzazione google e creazione token
+        if(authUrl){
+            $('#authUrlSpace').html(authUrl);
+        } else {
+            $('#authUrlSpace').html('Errore, non ');
+        }
     })
 
     // Buttons per conferma ricetta e ingredienti
@@ -539,6 +546,9 @@ $(document).ready(()=> {
     })
     $('#closeModalIngBtn').click(() => {
         $('#IngListDiv').empty();
+    })
+    $('#closeModalAuthUrlBtn').click(() => {
+        $('#authUrlModal').empty();
     })
     
     // Non permette l'uscita dal modal cliccando fuori da quest'ultimo, in questo modo possiamo uscire dal modal

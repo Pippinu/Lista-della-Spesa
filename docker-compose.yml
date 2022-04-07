@@ -47,7 +47,7 @@ services:
   express_server:
     build: ./nginx/express/
     # 8888 o 3000(default express port)?
-    ports: 
+    ports:
       - "8888:8888"
     volumes:
       - ./nginx/express:/app

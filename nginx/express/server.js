@@ -8,7 +8,7 @@ const axios = require('axios');
 const amqp = require('amqplib/callback_api');
 const {google} = require('googleapis');
 const fs = require('fs');
-const open = require('open');
+// const open = require('open');
 
 // const readline = require('readline');
 // const http = require('http');
@@ -189,11 +189,14 @@ function authorize(credentials, callback, CALENDAR_DATA) {
   
     // Check if we have previously stored a token.
     fs.readFile(TOKEN_PATH, (err, token) => {
-        if (err) getAccessToken(oAuth2Client);
+        res = null;
+        if (err) res = getAccessToken(oAuth2Client);
         else{
             oAuth2Client.setCredentials(JSON.parse(token));
             callback(oAuth2Client, CALENDAR_DATA);
         }
+
+        if(res) return res;
     });
 }
 function getAccessToken(oAuth2Client) {
@@ -204,7 +207,7 @@ function getAccessToken(oAuth2Client) {
 
     console.log('Request authUrl');
     console.log(authUrl);
-    // open(authUrl);
+    return authUrl
 }
 async function addEvent(auth, CALENDAR_DATA) {
     const calendar = google.calendar({version: 'v3', auth});
@@ -422,9 +425,10 @@ app.post('/calendar', (req, res) => {
     fs.readFile('./credentials.json', (err, content) => {
         if (err) return console.log('Error loading client secret file:', err);
         // Authorize a client with credentials, then call the Google Calendar API.
-        authorize(JSON.parse(content), addEvent, CALENDAR_DATA);
-    });
+        ret = authorize(JSON.parse(content), addEvent, CALENDAR_DATA);
 
+        if(ret) res.send(ret); 
+    });
     res.send('Procedure to create event started');
 })
 app.get('/oauth2callback', (req, res) => {
