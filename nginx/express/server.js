@@ -8,6 +8,8 @@ const axios = require('axios');
 const amqp = require('amqplib/callback_api');
 const {google} = require('googleapis');
 const fs = require('fs');
+const util = require('util');
+const fsProms = util.promisify(fs.readFile);
 // const open = require('open');
 
 // const readline = require('readline');
@@ -172,7 +174,6 @@ async function searchCache(labelHash){
     }
 }
 
-const TOKEN_PATH = '../token.json';
 const SCOPES = [
     //SCOPES per CalendarList: list, Calendar.insert, Event:update, Event:insert
     'https://www.googleapis.com/auth/calendar.readonly',
@@ -183,20 +184,24 @@ const SCOPES = [
 ];
 
 function authorize(credentials, callback, CALENDAR_DATA) {
-    const {client_secret, client_id, redirect_uris} = credentials.web;
-    const oAuth2Client = new google.auth.OAuth2(
-        client_id, client_secret, redirect_uris[0]);
-  
-    // Check if we have previously stored a token.
-    fs.readFile(TOKEN_PATH, (err, token) => {
-        res = null;
-        if (err) res = getAccessToken(oAuth2Client);
-        else{
+    return new Promise((resolve, reject) => {
+        const {client_secret, client_id, redirect_uris} = credentials.web;
+        const oAuth2Client = new google.auth.OAuth2(
+            client_id, client_secret, redirect_uris[0]);
+
+        try{
+            const token = fs.readFileSync('./token.json');
+            console.log('Ok token');
             oAuth2Client.setCredentials(JSON.parse(token));
             callback(oAuth2Client, CALENDAR_DATA);
+            resolve(null);
+        }catch(tokenErr){
+            console.log(`TokenErr -> ${tokenErr}`);
+            console.log('No token, genero authUrl');
+            const authUrl = getAccessToken(oAuth2Client);
+            if(authUrl) resolve(authUrl);
+            else reject('Error in token generation');
         }
-
-        if(res) return res;
     });
 }
 function getAccessToken(oAuth2Client) {
@@ -205,8 +210,6 @@ function getAccessToken(oAuth2Client) {
       scope: SCOPES,
     });
 
-    console.log('Request authUrl');
-    console.log(authUrl);
     return authUrl
 }
 async function addEvent(auth, CALENDAR_DATA) {
@@ -258,11 +261,11 @@ async function addEvent(auth, CALENDAR_DATA) {
             });
 
             try{
-                fs.appendFileSync('../.env', `\ncalendarID = ${calendarInsertRes.data.id}`);
+                fs.appendFileSync('./.env', `\ncalendarID = ${calendarInsertRes.data.id}`);
             } catch(err) {console.log(`Error in appendFileSync calendar insert -> ${err}`);}
             
             // Ricarico process.env cosi da caricare anche il valore appena inserito process.env.calendarID
-            require('dotenv').config({path: '../.env'});
+            require('dotenv').config({path: './.env'});
             
             console.log(`Calendar created with ID: ${process.env.calendarID}`);
         }catch(err){return console.log('Calendar Create -> The API returned an error: ' + err);}
@@ -277,9 +280,9 @@ async function setEvent(calendar, CALENDAR_DATA){
     console.log('im in setEvent');
 
     const eventListRes = await calendar.events.list({
-        calendarId: process.env.calendarID,
+    calendarId: process.env.calendarID,
     });
-
+        
     let eventID = null;
     eventListRes.data.items.map((e, i) => {
         if(e.summary == 'Lista della spesa'){
@@ -363,6 +366,9 @@ function createEvent(CALENDAR_DATA){
     }
     return event;
 }
+function readPromsFile(PATH){
+    return fsProms(PATH);
+}
 
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
@@ -422,15 +428,46 @@ app.post('/calendar', (req, res) => {
     CALENDAR_DATA = null;
     CALENDAR_DATA = req.body.list;
     
-    fs.readFile('./credentials.json', (err, content) => {
-        if (err) return console.log('Error loading client secret file:', err);
-        // Authorize a client with credentials, then call the Google Calendar API.
-        ret = authorize(JSON.parse(content), addEvent, CALENDAR_DATA);
+    // fs.readFile('./credentials.json', async(err, content) => {
+    //     if (err) return console.log('Error loading client secret file:', err);
+    //     // Authorize a client with credentials, then call the Google Calendar API.
+    //     try{
+    //         let ret = await authorize(JSON.parse(content), addEvent, CALENDAR_DATA);
+    //         console.log('express /calendar -> authUrl = ' + ret);
+    //         if(ret) res.send(ret);
+    //     }catch(error){
+    //         console.log(error);
+    //         res.sendStatus(500);
+    //     }
+    // });
 
-        if(ret) res.send(ret); 
-    });
-    res.send('Procedure to create event started');
-})
+    // readPromsFile('./credentials.json').then(data => {
+    //     authorize(JSON.parse(data), addEvent, CALENDAR_DATA).then(ret => {
+    //         console.log('express /calendar -> authUrl = ' + ret);
+    //         if(ret) res.send(ret);
+    //     }).catch(err => {
+    //         console.log(err);
+    //         res.sendStatus(500);
+    //     });
+    // }).catch(err => {
+    //     res.send('Error loading client secret file: ' + err + '\n');
+    // })
+
+    try{
+        const credentials = fs.readFileSync('./credentials.json');
+        authorize(JSON.parse(credentials), addEvent, CALENDAR_DATA).then(authUrl => {
+            if(authUrl) res.send(authUrl);
+            else res.send('Procedura inserimento dati in Calendar avviata');
+        }).catch(err1 => {
+            console.log(err1);
+            res.send(err1);
+        })
+    }catch(err) {
+        console.log('fs.readFileSync err -> ' + err + '\n');
+        res.sendStatus(500);
+    }
+    // res.send('No authUrl to send');
+});
 app.get('/oauth2callback', (req, res) => {
     let tokenCode = req.query.code;
 
@@ -446,7 +483,7 @@ app.get('/oauth2callback', (req, res) => {
     
             oAuth2Client.setCredentials(token);
             // Store the token to disk for later program executions
-            fs.writeFile(TOKEN_PATH, JSON.stringify(token), (err) => {
+            fs.writeFile('./token.json', JSON.stringify(token), (err) => {
                 if (err) return console.error(err);
             });
         });

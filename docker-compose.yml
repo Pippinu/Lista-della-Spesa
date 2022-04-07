@@ -16,16 +16,6 @@ services:
       - "80:80"
     container_name: nginx
 
-  # The name, php, will also function as the host name of the container
-  # php:
-  #   image: php:fpm-alpine
-  #   ports:
-  #     - "9000:9000"
-  #   # Map php files in .nginx/php to the root of nginx
-  #   volumes:
-  #     - ./nginx/php:/usr/share/nginx/html
-  #   container_name: php
-
   rabbitmq:
     image: rabbitmq:latest
     ports:

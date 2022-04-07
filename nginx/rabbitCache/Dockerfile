@@ -1,6 +1,6 @@
 FROM node:17
 
-WORKDIR /rabbitmqcache
+WORKDIR /rabbitCache
 COPY . .
 
 RUN npm install axios

@@ -1,6 +1,6 @@
 FROM node:17
 
-WORKDIR /rabbitmqlog
+WORKDIR /rabbitLog
 COPY . .
 
 RUN npm install axios

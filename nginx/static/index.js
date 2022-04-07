@@ -51,7 +51,7 @@ async function axiosAddEventCalendar(recipeIngList){
             list : recipeIngList,
         },
     })
-    if(res) return res.status;
+    if(res) return res.data;
     else return null;
 }
 
@@ -360,15 +360,19 @@ $(document).ready(()=> {
         })
 
         // Invio sotto forma di stringa il file JSON a server.js cosi da salvarlo su calendar
-        let authUrl = axiosAddEventCalendar(JSON.stringify(dataRecipes)).then(res => {console.log(res.data)});
-
-        // Spawn modal per autorizzazione google e creazione token
-        if(authUrl){
-            $('#authUrlSpace').html(authUrl);
-        } else {
-            $('#authUrlSpace').html('Errore, non ');
-        }
-    })
+        axiosAddEventCalendar(JSON.stringify(dataRecipes))
+        .then(authUrl => {
+            // console.log(res);
+            console.log(authUrl);
+            // // Spawn modal per autorizzazione google e creazione token
+            if(authUrl){
+                $('#authUrlModal').modal('toggle');
+                $('#authUrlSpace').attr('href', authUrl);
+            }else{
+                console.log(`authUrl -> ${authUrl}`);
+            }
+        });
+    });
 
     // Buttons per conferma ricetta e ingredienti
     $('#okModalBtnRecipe').click(() => {
