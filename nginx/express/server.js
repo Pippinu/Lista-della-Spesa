@@ -292,7 +292,20 @@ async function addEvent(auth, CALENDAR_DATA) {
                         // IN CASO CALENDARIO 'Lista della spesa' TROVATO MA ID DIVERSO DA CalendarID in .env, DOVREI AGGIORNARE
                         // console.log(`Error in CalendarList -> \nthisCalendar -> ${JSON.stringify(thisCalendar)}\ncalendarID -> ${process.env.calendarID}`);
                         console.log(`Calendario 'Lista della spesa' presente ma non coincide con il calendario registrato, modifico il suo ID, quindi riprovare!`);
-                        
+                        console.log(`calendarID errato -> ${process.env.calendarID}\n`);
+                        const dotenv = require('dotenv');
+                        const envConf = dotenv.parse(fs.readFileSync('./.env'));
+
+                        for(var k in envConf){
+                            if(k == 'calendarID'){
+                                process.env[k] = thisCalendar.id;
+                            }
+                        }
+                        // Ricarico il file per attuare le modifiche
+                        require('dotenv').config({path: './.env'});
+                        console.log(`Nuovo calendarID -> ${process.env.calendarID}\n`);
+
+                        addEvent(auth, CALENDAR_DATA);
                     }
                 }
             });
