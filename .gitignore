@@ -1,3 +1,4 @@
 nginx/credentials.json
 .env
 nginx/express/credentials.json
+dbdata
