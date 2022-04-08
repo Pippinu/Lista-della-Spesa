@@ -28,6 +28,8 @@ String.prototype.hashCode = function(){
       }
       return hash;
 }
+
+// Manda log alla relativa coda AMQP con key 'DBlog'
 function logFunc(log){
     amqp.connect('amqp://host.docker.internal:55672', function(error0, connection){
         if(error0){
@@ -54,8 +56,8 @@ function logFunc(log){
         }, 1000);
     })
 }
-// Gli interceptors, appunto intercettano Axios Request e Response e eseguono una funz.
-// Mandare i log a CouchDB
+
+// Gli interceptors, appunto intercettano Axios Request e Response e eseguono la funzione logFunc per salvare i log su CouchDB
 axios.interceptors.request.use(req => {
     let log = '[Axios][Request] ' + req.method.toUpperCase() + ' ' + req.url;
     logFunc(log);
@@ -68,7 +70,9 @@ axios.interceptors.response.use(res => {
     logFunc(log);
     return res;
 })
-// Async/Await method, provare Promise method per axios request
+
+// Richiede a Recipe Search API una serie di ricette che comprendano nel titolo il parametro passato e restituisce i JSON Data
+// di ognuno di essi cosi da costruire il Modal Ricette da poter selezionare
 async function axiosRecipe(recipe){
     try{
         let res = await axios({
@@ -77,7 +81,10 @@ async function axiosRecipe(recipe){
         })
         if(res.status == 200){
             console.log('Ricetta Ottenuta');
-            // fs.writeFile("avocadoRecipesList.json", JSON.stringify(res.data.hits), (err, result) => {
+            // DEBUG PURPOSE per non effettuare troppe richieste alla API, che, essendo free, permette 
+            // un numero massimo di richieste per minuto
+
+            // fs.writeFile("recipesList.json", JSON.stringify(res.data.hits), (err, result) => {
             //     if(err) console.log(err);
             // })
             return res.data.hits;
@@ -86,8 +93,19 @@ async function axiosRecipe(recipe){
         console.log(err.response.status);
     }
 }
-// Manda richiesta ricetta singola e restituisce i valori della singola ricetta per costruire il DivRicetta sulla Homepage
-async function axiosGetSingleRecipe(url){
+// Richiede a Food Database API la singola ricetta e restituisce i valori di quest'ultima per costruire il DivRicetta sulla Homepage.
+
+// Il tutto è possibile grazie all'URL passato come parametro, quest'ultimo è ottenuto quando si seleziona la ricetta
+// che si vuole aggiungere alla lista dal Modal che mostra la serie di ricette ottenute dalla funzione 'axiosRecipe'.
+
+// L'URL in questione fa parte dei JSON data della ricetta e viene aggiunto agli attributi in fase di creazione del div
+// contenuto nel Modal della lista delle ricette.
+
+// Successivamente, quando viene premuto il tasto 'Scegli' del Modal che conferma la selezione della ricetta, questo URL
+// viene preso dagli attributi del div contenuto nel Modal e usato, appunto, nella funzione qui sotto per richiedere a 
+// Nutrition Analysis API i valori nutrizionali della ricetta che verranno aggiunti, insieme al nome della ricetta
+// ed a suoi ingredienti scelti, nella Homepage
+async function axios_get_single_recipe(url){
     try{
         let res = await axios({
             method: 'GET',
@@ -95,7 +113,10 @@ async function axiosGetSingleRecipe(url){
         })
         if(res.status == 200){
             console.log('Ricetta Ottenuta');
-            // fs.writeFile("avocadoRecipesList.json", JSON.stringify(res.data.hits), (err, result) => {
+            // DEBUG PURPOSE per non effettuare troppe richieste alla API, che, essendo free, permette 
+            // un numero massimo di richieste per minuto
+
+            // fs.writeFile("recipesList.json", JSON.stringify(res.data.hits), (err, result) => {
             //     if(err) console.log(err);
             // })
             return res.data.recipe;
@@ -104,7 +125,10 @@ async function axiosGetSingleRecipe(url){
         console.log(err.response.status);
     }
 }
-async function axiosngSearch(ing){
+
+// Richiede a Food Database API una serie di ingredienti che comprendano nel titolo il parametro passato e restituisce i JSON Data 
+// di ognuno di essi cosi da costruire il Modal Ingredienti singoli da poter selezionare
+async function axios_ing_search(ing){
     try{
         let res = await axios({
             method : 'GET', 
@@ -119,7 +143,10 @@ async function axiosngSearch(ing){
         console.log(error);
     }
 }
-async function axiosGetSingleIng(ing){
+
+// Richiede a Nutrition Data API i dati nutrizionali dell'ingrediente singolo passato come parametro che corrisponde all'ingrediente 
+// singolo da aggiungere alla Lista della Speda scelto dal Modal Ingredienti
+async function axios_get_single_ing(ing){
     try{
         let res = await axios({
             method: 'GET',
@@ -133,9 +160,11 @@ async function axiosGetSingleIng(ing){
         console.log(err.response);
     }
 }
-async function cacheFunc(toCache){
-    logFunc('[RabbitMQ][Cache] ' + toCache.label);
 
+// Salva su CouchDB i JSON data della ricetta o dell'ingrediente passati come parametro
+async function cacheFunc(toCache){
+    // Scrive sul log cosa sta per salvare in cache
+    logFunc('[RabbitMQ][Cache] ' + toCache.label);
 
     amqp.connect('amqp://host.docker.internal:55672', function(error0, connection){
         if(error0) throw error0;
@@ -157,6 +186,9 @@ async function cacheFunc(toCache){
         }, 1000);
     });
 }
+
+// Controlla che la ricetta o l'ingrediente richiesti siano in Cache, cioè salvati su CouchDB attraverso il parametro
+// ottenuto creando l'hash del nome della ricetta o ingrediente attraverso la funzione 'hashcode' implementata sopra
 async function searchCache(labelHash){
     try{
         let res = await axios({
@@ -174,6 +206,7 @@ async function searchCache(labelHash){
     }
 }
 
+// SCOPES per autorizzazione Google Calendar API
 const SCOPES = [
     //SCOPES per CalendarList: list, Calendar.insert, Event:update, Event:insert
     'https://www.googleapis.com/auth/calendar.readonly',
@@ -183,7 +216,20 @@ const SCOPES = [
     'https://www.googleapis.com/auth/calendar.events'
 ];
 
+// La seguente funzione è utilizzata per autorizzare, appunto, l'aggiunta o l'eventuale modifica dell'evento Lista della Spesa
+// in Google Calendar.
+
+// Tale funzione è strutturata in 2 parti, divise dai 2 rami del try-catch, in pratica si prova a leggere il file 'token.json'
+// che contiene, appunto, il token fornito da Google Calendar API in caso di avventuta autorizzazione all'uso dell'API.
+
+// Se questo è presente(ramo TRY), allora siamo autorizzati a procedere, settiamo le nostre credenziali e procediamo con la funzione addEvent
+
+// Se il token non fosse presente, non siamo ancora stati autorizzati(ramo CATCH), quindi creiamo un authorization URL attraverso la funzione 
+// get_access_token che va costruire quest'ultimo e lo andremo a restituire l'authUrl all'utente che verra mostrato attraverso un modal.
+// L'utente seguirà tale URL ed all'avvenuta autorizzazione, tramite la pagina 'callback.html' partirà una richiesta GET a questo Server che
+// verrà gestita da 'app.get('/oauth2callback')
 function authorize(credentials, callback, CALENDAR_DATA) {
+    // Rendo la funzione authorize async
     return new Promise((resolve, reject) => {
         const {client_secret, client_id, redirect_uris} = credentials.web;
         const oAuth2Client = new google.auth.OAuth2(
@@ -195,16 +241,19 @@ function authorize(credentials, callback, CALENDAR_DATA) {
             oAuth2Client.setCredentials(JSON.parse(token));
             callback(oAuth2Client, CALENDAR_DATA);
             resolve(null);
+        // Gestisco errore fs.readFileSync, cioè nel caso in cui ./token.json non sia ancora stato creato
         }catch(tokenErr){
-            console.log(`TokenErr -> ${tokenErr}`);
+            // console.log(`TokenErr -> ${tokenErr}`);
             console.log('No token, genero authUrl');
-            const authUrl = getAccessToken(oAuth2Client);
+            const authUrl = get_access_token(oAuth2Client);
             if(authUrl) resolve(authUrl);
             else reject('Error in token generation');
         }
     });
 }
-function getAccessToken(oAuth2Client) {
+
+// Crea authURL da restiuire alla funzione 'authorize' che a sua volta lo restituirà all'utente
+function get_access_token(oAuth2Client) {
     const authUrl = oAuth2Client.generateAuthUrl({
       access_type: 'offline',
       scope: SCOPES,
@@ -212,6 +261,8 @@ function getAccessToken(oAuth2Client) {
 
     return authUrl
 }
+
+// Funzione che gestisce il percorso per l'aggiunta o l'eventuale modifica dell'evento Lista della Spesa, altre info all'interno della funzione
 async function addEvent(auth, CALENDAR_DATA) {
     const calendar = google.calendar({version: 'v3', auth});
 
@@ -219,11 +270,10 @@ async function addEvent(auth, CALENDAR_DATA) {
         // Ottieni lista dei calendari del relativo account google
         const calendarListRes = await calendar.calendarList.list({});
         const calendars = calendarListRes.data.items;
-        
+        // Se sono presenti dei calendari si va alla ricerca del calendario nominato 'Lista della Spesa'
         if(calendars.length){
             calendars.map((thisCalendar, i) => {
-                // console.log(`${thisCalendar.summary} - ${thisCalendar.id}`);
-
+                // Se 'Lista della Spesa' è presente controlliamo che 
                 if(thisCalendar.summary == 'Lista della spesa'){
                     if(thisCalendar.id == process.env.calendarID){
                         console.log('Calendar found');
@@ -240,7 +290,9 @@ async function addEvent(auth, CALENDAR_DATA) {
                         return true;
                     } else {
                         // IN CASO CALENDARIO 'Lista della spesa' TROVATO MA ID DIVERSO DA CalendarID in .env, DOVREI AGGIORNARE
-                        return console.log(`Error in CalendarList -> \nthisCalendar -> ${JSON.stringify(thisCalendar)}\ncalendarID -> ${process.env.calendarID}`);
+                        // console.log(`Error in CalendarList -> \nthisCalendar -> ${JSON.stringify(thisCalendar)}\ncalendarID -> ${process.env.calendarID}`);
+                        console.log(`Calendario 'Lista della spesa' presente ma non coincide con il calendario registrato, modifico il suo ID, quindi riprovare!`);
+                        
                     }
                 }
             });
@@ -366,10 +418,6 @@ function createEvent(CALENDAR_DATA){
     }
     return event;
 }
-function readPromsFile(PATH){
-    return fsProms(PATH);
-}
-
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
@@ -393,7 +441,7 @@ app.get('/singleRecipe', (req, res) => {
         if(resp){
             console.log('Cached recipe found');
             res.send(resp.data.recipe);
-        } else axiosGetSingleRecipe(req.query.selfUrl).then(resp => {
+        } else axios_get_single_recipe(req.query.selfUrl).then(resp => {
             console.log('No recipe found in cache');
             // Check recipe not null
             if(resp) cacheFunc(resp);
@@ -408,17 +456,17 @@ app.get('/singleIng', (req, res) => {
         if(resp){
             console.log('Cached Ingredient Details found');
             res.send(resp.data.recipe);
-        } else axiosGetSingleIng(req.query.ing).then(resp => {
+        } else axios_get_single_ing(req.query.ing).then(resp => {
             console.log('No Ingredient Details found in cache');
             resp.label = req.query.ing;
             if(resp) cacheFunc(resp);
             res.send(resp);
         });
     })
-})
+});
 app.get('/ingredients', (req, res) => {
     console.log('Ricevuta richiesta ing')
-    axiosngSearch(req.query.ing).then(resp => res.send(resp));
+    axios_ing_search(req.query.ing).then(resp => res.send(resp));
 });
 
 var CALENDAR_DATA = null;
@@ -427,31 +475,6 @@ app.post('/calendar', (req, res) => {
 
     CALENDAR_DATA = null;
     CALENDAR_DATA = req.body.list;
-    
-    // fs.readFile('./credentials.json', async(err, content) => {
-    //     if (err) return console.log('Error loading client secret file:', err);
-    //     // Authorize a client with credentials, then call the Google Calendar API.
-    //     try{
-    //         let ret = await authorize(JSON.parse(content), addEvent, CALENDAR_DATA);
-    //         console.log('express /calendar -> authUrl = ' + ret);
-    //         if(ret) res.send(ret);
-    //     }catch(error){
-    //         console.log(error);
-    //         res.sendStatus(500);
-    //     }
-    // });
-
-    // readPromsFile('./credentials.json').then(data => {
-    //     authorize(JSON.parse(data), addEvent, CALENDAR_DATA).then(ret => {
-    //         console.log('express /calendar -> authUrl = ' + ret);
-    //         if(ret) res.send(ret);
-    //     }).catch(err => {
-    //         console.log(err);
-    //         res.sendStatus(500);
-    //     });
-    // }).catch(err => {
-    //     res.send('Error loading client secret file: ' + err + '\n');
-    // })
 
     try{
         const credentials = fs.readFileSync('./credentials.json');

@@ -385,7 +385,6 @@ $(document).ready(()=> {
 
         // console.log(ingredients);
 
-        // Da sistemare
         if(ingredients.length){
             let recipe = checkedBox.parents("[id^='divDrop']").prev().html();
             let imgRecipeLink = imgRecipe[checkedBox.parents("[id^='divDrop']").prev().attr('nrecipe')];
