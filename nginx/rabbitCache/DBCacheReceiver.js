@@ -88,7 +88,10 @@ amqp.connect('amqp://host.docker.internal:55672', function(error0, connection) {
 
             channel.consume(q.queue, function(msg){
                 const recipe = JSON.parse(msg.content.toString());
-                let hash = recipe.label.hashCode();
+                let toHash = recipe.label + 'single';
+                let hash = toHash.hashCode();
+
+                console.log(`New data to be cached -> Label: ${recipe.label} Hash: ${hash}`);
                 // console.log(recipe.label + ' - ' + hash);
                 // console.log('Hash -> ' + hash);
                 axiosCreateDB().then(res => {
@@ -97,9 +100,9 @@ amqp.connect('amqp://host.docker.internal:55672', function(error0, connection) {
                     }
 
                     axiosCacheRecipe(hash, JSON.parse(msg.content.toString())).then(res => {
-                        if(!res){
-                            throw 'ERRORE ADD RECIPE CACHE';
-                        }
+                        if(res){
+                            console.log(`Logged ${recipe.label} with hash ${hash}\n`);
+                        } else console.log('ERRORE ADD RECIPE CACHE');
                     });
                 });
             }, {

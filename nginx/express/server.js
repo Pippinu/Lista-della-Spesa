@@ -80,7 +80,6 @@ async function axiosRecipe(recipe){
             url: 'https://api.edamam.com/api/recipes/v2?type=public&q=' + recipe + '&app_id=' + process.env.EDAMAM_APP_ID_RECIPE + '&app_key=' + process.env.EDAMAM_APP_KEY_RECIPE
         })
         if(res.status == 200){
-            console.log('Ricetta Ottenuta');
             // DEBUG PURPOSE per non effettuare troppe richieste alla API, che, essendo free, permette 
             // un numero massimo di richieste per minuto
 
@@ -190,11 +189,13 @@ async function cacheFunc(toCache){
 // Controlla che la ricetta o l'ingrediente richiesti siano in Cache, cioè salvati su CouchDB attraverso il parametro
 // ottenuto creando l'hash del nome della ricetta o ingrediente attraverso la funzione 'hashcode' implementata sopra
 async function searchCache(labelHash){
+    console.log(`search Cache -> Label hash -> ${labelHash}`);
     try{
         let res = await axios({
             method : 'GET',
-            url : 'http://admin:password@host.docker.internal:5984/cachedb/' + labelHash,
+            url : 'http://admin:password@host.docker.internal:5984/cache/' + labelHash,
         });
+        console.log(`searchCase res -> \n ${res}`);
         if(res) return res;
         else return null;
     }catch(error){
@@ -447,28 +448,34 @@ app.get('/recipe', (req, res) => {
 
 // Gestisce richiesta GET per singola ricetta
 app.get('/singleRecipe', (req, res) => {
-    let toHash = req.query.recipeLabel + 'singleRecipe';
+    let toHash = req.query.recipeLabel + 'single';
     let hash = toHash.hashCode();
+    console.log(`Hash of recipe ${req.query.recipeLabel} -> ${hash}`);
     // Cerco ricetta Cached in base all'hash
     searchCache(hash).then(resp => {
         // Se ricetta presente in Cache la restituisco immediatamente all'utente senza creare una nuova richiesta alla API
+        console.log(`Response from searchCache(${hash} -> ${resp})`);
         if(resp){
             console.log('Cached recipe found');
             res.send(resp.data.recipe);
         // Se ricetta non presente nella Cache, richiedo tale ricetta e prima di restiuirla all'utente la salvo in Cache
         } else axios_get_single_recipe(req.query.selfUrl).then(resp => {
-            console.log('No recipe found in cache');
+            console.log('No recipe found in cache, im asking to the API\n');
+            console.log(`axios_get_single_recipe resp.label -> ${resp.label}`);
             // Check recipe not null
             if(resp) cacheFunc(resp);
-            res.send(resp);
+            res.send(JSON.stringify(resp));
+        }).catch(err => {
+            console.log(`axios_get_single_recipe Error -> ${err} \n`);
         });
     });
 });
 
 // Gestisce richiesta GET per singolo ingrediente
 app.get('/singleIng', (req, res) => {
-    let hash = req.query.ing.hashCode();
-
+    let toHash = req.query.ing + 'single';
+    let hash = toHash.hashCode();
+    console.log(`Hash of ingredient ${req.query.ing} -> ${hash}`);
     // Cerco ingrediente Cached in base all'hash
     searchCache(hash).then(resp => {
         // Se ingrediente presente in Cache lo restituisco immediatamente all'utente senza creare una nuova richiesta alla API

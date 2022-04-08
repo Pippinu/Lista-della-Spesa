@@ -4,4 +4,3 @@ WORKDIR /
 # Usare questa istruzione per copiare da windows nel container le pagine web Client
 COPY ./nginx/static /usr/share/nginx/html
 COPY ./nginx/static/default.conf /etc/nginx/conf.d/default.conf
-COPY ./package*.json ./
