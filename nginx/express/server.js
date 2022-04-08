@@ -304,14 +304,16 @@ async function addEvent(auth, CALENDAR_DATA) {
 
     console.log('No calendar Lista della spesa found');
 
+    // In caso non venga trovato il calendario 'Lista della spesa' ne creiamo uno
     if(process.env.calendarID == null || process.env.calendarID == undefined){
         try{
+            // Provo a creare calendario con summary 'Lista della spesa'
             const calendarInsertRes = await calendar.calendars.insert({
                 requestBody: {
                     'summary': 'Lista della spesa'
                 },
             });
-
+            // se tutto va bene provo a salvare il suo ID come calendarID sul file .env
             try{
                 fs.appendFileSync('./.env', `\ncalendarID = ${calendarInsertRes.data.id}`);
             } catch(err) {console.log(`Error in appendFileSync calendar insert -> ${err}`);}
@@ -320,32 +322,41 @@ async function addEvent(auth, CALENDAR_DATA) {
             require('dotenv').config({path: './.env'});
             
             console.log(`Calendar created with ID: ${process.env.calendarID}`);
+        // In caso non riuscissi a creare 'Lista della spesa' restituisco un errore
         }catch(err){return console.log('Calendar Create -> The API returned an error: ' + err);}
 
+        // Se tutto è andato per il verso giusto procedo alla vera aggiunta o eventuale modifica dell'evento 'Lista della Spesa'
         setEvent(calendar, CALENDAR_DATA);
         return true;
     } else {
         return console.log('Calendar Missmatch');
     }
 }
-async function setEvent(calendar, CALENDAR_DATA){
-    console.log('im in setEvent');
 
+// Funzione che gestisce la vera creazione o eventuale modifica dell'evento 'Lista della Spesa'
+async function setEvent(calendar, CALENDAR_DATA){
+    // console.log('im in setEvent');
+
+    // Richiedo la lista degli eventi del calendario 'Lista della Spesa'
     const eventListRes = await calendar.events.list({
-    calendarId: process.env.calendarID,
+        calendarId: process.env.calendarID,
     });
         
     let eventID = null;
     eventListRes.data.items.map((e, i) => {
+        // Se esiste gia un evento 'Lista della spesa modifico la var eventID con il suo ID
         if(e.summary == 'Lista della spesa'){
             console.log('Event found, lets update it');
             eventID = e.id;
         }
     });
 
+    // Se l'evento 'Lista della spesa' è stato trovato, quindi 'eventID' non è nulla vado a modificare tale evento con i nuovi dati
     if(eventID){
+        // Creo evento a partire dai dati forniti dall'utente
         let newEvent = createEvent(CALENDAR_DATA);
 
+        // Provo a modificare l'evento 'Lista della spesa'
         try{
             const eventUpdateRes = await calendar.events.update({
                 calendarId: process.env.calendarID,
@@ -357,12 +368,14 @@ async function setEvent(calendar, CALENDAR_DATA){
                     'end': newEvent.end
                 }
             });
-    
-            return console.log(`Event id: ${eventUpdateRes.data.id} updated`);
+            // In caso di successo restituisco un messaggio di conferma avvenuta modifica
+            return console.log(`Event id: ${eventUpdateRes.data.id} updated\n`);
         }catch(err) {return console.log('Event Update -> The API returned an error: ' + err);}
-    } else {
+    // Se non esiste l'evento 'Lista della spesa' provo a crearne uno
+    } else { 
         console.log('No Event found, lets create it');
         let newEvent = createEvent(CALENDAR_DATA);
+        // Provo a creare l'evento 'Lista della Spesa'
         try{
             const eventInsertRes = await calendar.events.insert({
                 calendarId: process.env.calendarID,
@@ -373,11 +386,14 @@ async function setEvent(calendar, CALENDAR_DATA){
                     'end': newEvent.end
                 },
             });
-            console.log('new Event created');
+            // In caso di successo restituisco un messaggi di conferma avvenuta creazione
+            return console.log(`new Event id: ${eventInsertRes.data.id} created\n`);
             // console.log(`Event ${eventInsertRes.data.id} created\nEvent summary -> ${eventInsertRes.data.summary}\nEvent desc -> ${eventInsertRes.data.description}\nEvent start -> ${eventInsertRes.data.start}\nEvent end -> ${eventInsertRes.data.end}`);
         }catch(err) {return console.log('Event insert -> : The API returned an error: ' + err);}
     }
 }
+
+// Funzione che crea oggetto evento a partire dai dati forniti dall'utente e li restituisce a setEvent che li aggiungerà all'evento 'Lista della spesa'
 function createEvent(CALENDAR_DATA){
     let dataRecipes = JSON.parse(CALENDAR_DATA);
 
@@ -418,29 +434,28 @@ function createEvent(CALENDAR_DATA){
     }
     return event;
 }
+
 const app = express();
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-/**
- * Create an OAuth2 client with the given credentials, and then execute the
- * given callback function.
- * @param {Object} credentials The authorization client credentials.
- * @param {function} callback The callback to call with the authorized client.
- */
-
+// Gestisce richiesta GET per lista ricette
 app.get('/recipe', (req, res) => {
     axiosRecipe(req.query.recipe).then(resp => res.send(resp));
 });
+
+// Gestisce richiesta GET per singola ricetta
 app.get('/singleRecipe', (req, res) => {
     let toHash = req.query.recipeLabel + 'singleRecipe';
     let hash = toHash.hashCode();
     // Cerco ricetta Cached in base all'hash
     searchCache(hash).then(resp => {
+        // Se ricetta presente in Cache la restituisco immediatamente all'utente senza creare una nuova richiesta alla API
         if(resp){
             console.log('Cached recipe found');
             res.send(resp.data.recipe);
+        // Se ricetta non presente nella Cache, richiedo tale ricetta e prima di restiuirla all'utente la salvo in Cache
         } else axios_get_single_recipe(req.query.selfUrl).then(resp => {
             console.log('No recipe found in cache');
             // Check recipe not null
@@ -449,13 +464,18 @@ app.get('/singleRecipe', (req, res) => {
         });
     });
 });
+
+// Gestisce richiesta GET per singolo ingrediente
 app.get('/singleIng', (req, res) => {
     let hash = req.query.ing.hashCode();
 
+    // Cerco ingrediente Cached in base all'hash
     searchCache(hash).then(resp => {
+        // Se ingrediente presente in Cache lo restituisco immediatamente all'utente senza creare una nuova richiesta alla API
         if(resp){
             console.log('Cached Ingredient Details found');
             res.send(resp.data.recipe);
+        // Se ingrediente non presente nella Cache, richiedo tale ingrediente e prima di restiuirlo all'utente la salvo in Cache
         } else axios_get_single_ing(req.query.ing).then(resp => {
             console.log('No Ingredient Details found in cache');
             resp.label = req.query.ing;
@@ -469,13 +489,18 @@ app.get('/ingredients', (req, res) => {
     axios_ing_search(req.query.ing).then(resp => res.send(resp));
 });
 
+// Creo la var che andrà a contenere i dati forniti dall'utente
 var CALENDAR_DATA = null;
-
+// Gestisce la richiesta POST per creazione o eventuale modifica dell'evento 'Lista della Spesa'
 app.post('/calendar', (req, res) => {
 
+    // Resetto la var prima di effettuare una nuova richiesta, sicuramente un istruzione inutile, but still :D
     CALENDAR_DATA = null;
+    // Ottengo i dati dalla richiesta GET che l'utente vuole salvare sull'evento 'Lista della spesa'
     CALENDAR_DATA = req.body.list;
 
+    // Se le credenziali per un eventuale richiesta alla API sono presenti avvio il procedimento per la creazione
+    // o eventuale modifica dell'evento 'Lista della spesa'
     try{
         const credentials = fs.readFileSync('./credentials.json');
         authorize(JSON.parse(credentials), addEvent, CALENDAR_DATA).then(authUrl => {
@@ -491,7 +516,10 @@ app.post('/calendar', (req, res) => {
     }
     // res.send('No authUrl to send');
 });
+
+// Gestisce richiesta GET create dopo che l'utente ha completato il procedimento di autorizzazione Google OAuth
 app.get('/oauth2callback', (req, res) => {
+    // Salvo il tokenCode che sarà utilizzato per la creazione del Token che serve per le successive richieste alla Google Calendar API
     let tokenCode = req.query.code;
 
     fs.readFile('./credentials.json', (err, content) => {
@@ -505,7 +533,7 @@ app.get('/oauth2callback', (req, res) => {
             if (err) return console.error('Error retrieving access token', err);
     
             oAuth2Client.setCredentials(token);
-            // Store the token to disk for later program executions
+            // Creo il file token.json utilizzato nelle prossime richieste a Google Calendar API
             fs.writeFile('./token.json', JSON.stringify(token), (err) => {
                 if (err) return console.error(err);
             });
