@@ -4,6 +4,19 @@ Progetto reti di calcolatori
 Il progetto implementa una semplice Lista della Spesa nella quale è possibile aggiungere Ricette e relativi ingredienti o Singoli ingredienti.
 Ultimata la lista, è possibile salvarla su Google Calendar cosi da averla a disposizione su tutti i dispositivi connessi al relativo account.
 
+Il progetto soddisfa i requisiti:
+- API Documentata usando **apiDoc**, presente nella repository del progetto.
+- Il progetto si interfaccia con almeno 2 servizi *REST* di terze parti, in particolare:
+    - **Edamam API**, alla quale fanno parte:
+        - **Nutrition Analysis API**
+        - **Food and Grocery Database API**
+        - **Recipe Search API**
+    - **Google Calendar API**
+    - **CouchDB API**
+- Tutte queste API sono commerciali (?)
+- **Google Calendar API** richiede l'uso di **oAuth** per creare l'evento *Lista della Spesa*
+- Il progetto prevede l'uso del protocollo asincrono **AMQP**, usato nell'implementazione e uso di 2 code **RabbitMQ** per la *Cache* delle ricette e degli ingredienti e per il *Log* delle richieste, interamente salvati in **CouchDB**
+
 La struttura del progetto è la seguente:
 
 Gli elementi statici, *index.html*, *index.js*, *callback.html*, ecc. vengono forniti da un **NGINX WebServer**.
@@ -29,16 +42,24 @@ Parallelamente, viene inviata un'altra richiesta asincrona a **Nutrition Analysi
 
 3. **Salva in Calendar**, cliccando su questo tasto è possibile salvare gli ingredienti singoli, le ricette e i relativi ingredienti su un evento di Google Calendar, così da creare la vera e propria Lista della Spesa.
 
-La creazione di tale evento si svolge in 2 fasi:
-1. La prima volta che l'utente clicca sul Button **Salva in Calendar**, viene inviata una richiesta all'Application Server, questo avvia una procedura di autorizzazione alla richiesta verso Google Calendar API che consta nel controllare che l'utente l'applicazione ha a disposizione il *Token* che lo autorizza a inviare richieste a Google API.
-In questo caso, essendo la prima volta che l'utente interagisce con tale Button, il token non sarà presente.
-Constatato ciò, l'Application Server crea un authUrl e lo restituisce all'utente, a cui viene mostrato attraverso un *Bootstrap Modal*, seguendo tale URL, l'utente autorizza con ad usare un account Google e relativo Google Calendar.
-Completata l'autorizzazione, l'utente viene reindireizzato ad una semplice pagina HTML, *callback.html* che conferma l'avvenuta autorizzazione e che l'utente può chiudere la pagina e tornare alla homepage.
-Parallelamente a ciò, viene inviata una richiesta all'Application Server con, tra i parametri, un tokenCode ottenuto dalla autorizzazione andata a buon fine, quest'ultimo viene usato per costruire il token e salvarlo in *token.json*, in questo modo l'utente è autorizzato a interagire con Google Calendar API.
+    La creazione di tale evento si svolge in 2 fasi:
+    1. La prima volta che l'utente clicca sul Button **Salva in Calendar**, viene inviata una richiesta all'Application Server, questo avvia una procedura di autorizzazione alla richiesta verso Google Calendar API che consta nel controllare che l'utente l'applicazione ha a disposizione il *Token* che lo autorizza a inviare richieste a Google API.
+    In questo caso, essendo la prima volta che l'utente interagisce con tale Button, il token non sarà presente.
+    Constatato ciò, l'Application Server crea un authUrl e lo restituisce all'utente, a cui viene mostrato attraverso un *Bootstrap Modal*, seguendo tale URL, l'utente autorizza con ad usare un account Google e relativo Google Calendar.
+    Completata l'autorizzazione, l'utente viene reindireizzato ad una semplice pagina HTML, *callback.html* che conferma l'avvenuta autorizzazione e che l'utente può chiudere la pagina e tornare alla homepage.
+    Parallelamente a ciò, viene inviata una richiesta all'Application Server con, tra i parametri, un tokenCode ottenuto dalla autorizzazione andata a buon fine, quest'ultimo viene usato per costruire il token e salvarlo in *token.json*, in questo modo l'utente è autorizzato a interagire con Google Calendar API.
 
-2. La seconda fase consta nella vera e propria creazione dell'evento su Google Calendar.
-Premendo una seconda volta sul button **Salva in Calendar**, viene creato un JSON Object contentente i dati dei singoli ingredienti, le ricette e i relativi ingredienti, questi dati vengono inviati all'Application Server.
+    2. La seconda fase consta nella vera e propria creazione dell'evento su Google Calendar.
+    Premendo una seconda volta sul button **Salva in Calendar**, viene creato un JSON Object contentente i dati dei singoli ingredienti, le ricette e i relativi ingredienti, questi dati vengono inviati all'Application Server.
 
-Quest'ultimo, prima di creare l'evento, vengono verificate 2 cose:
-- Se il calendar *Lista della Spesa* non è presente tra i Calendar del relativo account Google ne crea uno.
-- Se il calendar è presente si verifica l'esistenza dell'evento *Lista della Spesa*, se quest'ultimo non è presente, viene creato un nuovo evento e nella descrizione vengono inseriti i dati delle ricette e degli ingredienti, se invece l'evento *Lista della Spesa* è già presente, allora viene modificata la descrizione di quest'ultimo con i dati delle ricette e degli ingredienti, senza andare a crearne uno nuovo. 
+    Quest'ultimo, prima di creare l'evento, vengono verificate 2 cose:
+        - Se il calendar *Lista della Spesa* non è presente tra i Calendar del relativo account Google ne crea uno.
+        - Se il calendar è presente si verifica l'esistenza dell'evento *Lista della Spesa*, se quest'ultimo non è presente, viene creato un nuovo evento e nella descrizione vengono inseriti i dati delle ricette e degli ingredienti, se invece l'evento *Lista della Spesa* è già presente, allora viene modificata la descrizione di quest'ultimo con i dati delle ricette e degli ingredienti, senza andare a crearne uno nuovo.
+
+Per installare il progetto è necessario **Docker** ed eseguire il seguente comando dalla cartella principale del progetto:
+
+```docker
+docker-compose up
+```
+
+Per testarlo, dopo aver installato il progetto su Docker ed essere sicuri che tutti i servizi sono attualmente in funzione (RabbitLog e RabbitCache tendono ad avviarsi prima di RabbitMQ implementato sulla porta 55672, quindi, spesso, non si avvieranno correttamente e sarà necessario provare ad avviarli una seconda volta da Docker) basterà ricercare sulla barra URL di un qualsiasi browser *'localhost'*.
