@@ -10,13 +10,6 @@ const {google} = require('googleapis');
 const fs = require('fs');
 const util = require('util');
 const fsProms = util.promisify(fs.readFile);
-// const open = require('open');
-
-// const readline = require('readline');
-// const http = require('http');
-// const https = require('https');
-// const url = require('url');
-// let {PythonShell} = require('python-shell');
 
 // Hash Function per stringhe
 String.prototype.hashCode = function(){
