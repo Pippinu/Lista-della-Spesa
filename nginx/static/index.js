@@ -243,21 +243,7 @@ $(document).ready(()=> {
                         .attr('id', 'divValNutIng' + i + 'ing')
                         .appendTo('#divDrop' + i + 'ing');
                     }
-                    // // Div che contiene Val Nut. della ricetta
-                    // if(!$('#divValNut' + i + 'ing').length){
-                    //     divValNut = $('<div/>')
-                    //     .attr('id', 'divValNut' + i + 'ing')
-                    //     .attr('class', 'col border border-success border-top-0 border-start-0 border-bottom-0 border-end-1 p-1')
-                    //     .appendTo('#divValNutIng' + i + 'ing');
-                    // }
-                    // // Div che contiene gli ingredienti della ricetta
-                    // if(!$('#divIng' + i + 'ing').length){
-                    //     divIng = $('<div/>')
-                    //     .attr('id', 'divIng' + i + 'ing')
-                    //     .attr('class', 'col border border-success border-top-0 border-start-1 border-bottom-0 border-end-0 p-1')
-                    //     .appendTo('#divValNutIng' + i + 'ing');
-                    // }
-                    // Tabella valori nutrizionali
+
                     if(!$('#tableValNut' + i + 'ing').length){
                         nutTab = $('<table/>')
                         .attr('id','tableValNut' + i + 'ing')
@@ -269,18 +255,12 @@ $(document).ready(()=> {
                     $('<tr/>').attr('id','trHeadValNut' + i + 'ing').appendTo('#tableHeadValNut' + i + 'ing');
                     $('<th/>').attr('scope', 'col').text('Valore Nut.').appendTo('#trHeadValNut' + i + 'ing');
                     $('<th/>').attr('scope', 'col').text('Quant.').appendTo('#trHeadValNut' + i + 'ing');
-                    // $('<th/>').attr('scope', 'col').text('%').appendTo('#trHeadValNut' + i + 'ing');
                     $('<tbody/>').attr('id','tableBodyValNut' + i + 'ing').appendTo('#tableValNut' + i + 'ing');
     
-                    // servings = data[i].recipe.yield;
                     valNut = data[i].food.nutrients;
-                    // daily = data[i].recipe.totalDaily;
     
                     keys = ['ENERC_KCAL','PROCNT', 'FAT', 'CHOCDF', 'FIBTG'];
-                    // keysDaily = ['ENERC_KCAL', 'FAT', 'CHOCDF', 'FIBTG', 'PROCNT', 'CHOLE', 'NA'];
                     filNutrients = keys.map(key => valNut[key]).filter(v => v);
-                    // filNutrientsDaily = keysDaily.map(key => daily[key]).filter(v => v);
-                    // console.log(filNutrients[0].label);
     
                     for(h=0; h<filNutrients.length; h++){
                         $('<tr/>').attr('id','trHeadValNut' + i + 'ing' + h).appendTo('#tableBodyValNut' + i + 'ing');
@@ -288,39 +268,6 @@ $(document).ready(()=> {
                         filNut = $('<td/>').text(Math.round(filNutrients[h])).appendTo('#trHeadValNut' + i + 'ing' + h);
                         if(h > 0) filNut.text(filNut.html() + ' ' + 'g');
                     }
-    
-                    // if(!$('#ULIngredienti' + i + 'ing').length){
-                    //     ulIng = $('<ul/>')
-                    //     .attr('class','list-group')
-                    //     .attr('id', 'ULIngredienti' + i + 'ing')
-                    //     .appendTo('#divIng' + i + 'ing');
-                    // }
-    
-                    // let ing = data[i].recipe.ingredients;
-                    // // Crea Li ingrediente con nome e checkbox
-                    // for(j=0; j<ing.length; j++){
-                    //     if(!$('#liIngrediente' + i + 'ing' + '' + j).length){
-                    //         liIng = $('<li/>')
-                    //         .attr('class', 'list-group-item d-flex')
-                    //         .attr('id', 'liIngrediente' + i + 'ing' + '' + j)
-                    //         .appendTo('#ULIngredienti' + i + 'ing');
-                    //     }
-    
-                    //     if(!$('#divIng' + i + 'ing' + '' + j).length){
-                    //         divSpIng = $('<div/>')
-                    //         .attr('id', 'divIng' + i + 'ing' + '' + j)
-                    //         .attr('class', 'flex-fill')
-                    //         .text(ing[j].food)
-                    //         .appendTo('#liIngrediente' + i + 'ing' + '' + j)
-                    //     }
-                    //     if(!$('#inputIngCheckBox' + i + 'ing' + '' + j).length){
-                    //         checkboxIng = $('<input/>')
-                    //         .attr('class', 'form-check-input me-1 checkboxIng')
-                    //         .attr('id', 'inputIngCheckBox' + i + 'ing' + '' + j)
-                    //         .attr('type', 'checkbox')
-                    //         .appendTo('#liIngrediente' + i + 'ing' + '' + j)
-                    //     }
-                    // }
                 }
             });
         }
@@ -480,8 +427,6 @@ $(document).ready(()=> {
         let nameIng = '';
 
         checkedIng.each(function(){
-            // console.log($(this).html());
-            // console.log($(this).html() + ' - ' + $(this).attr('aria-expanded'));
             if($(this).attr('aria-expanded') === 'true'){
                 // console.log('OK -> ' + $(this).html());
                 imgIngLink = imgIng[$(this).attr('ning')];

@@ -143,7 +143,7 @@ async function axios_ing_search(ing){
     }
 }
 
-// Richiede a Nutrition Data API i dati nutrizionali dell'ingrediente singolo passato come parametro che corrisponde all'ingrediente 
+// Richiede a Nutrition Data API i dati nutrizionali di 100gr dell'ingrediente singolo passato come parametro che corrisponde all'ingrediente 
 // singolo da aggiungere alla Lista della Speda scelto dal Modal Ingredienti
 async function axios_get_single_ing(ing){
     try{
@@ -441,12 +441,271 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.json());
 app.use(cors());
 
-// Gestisce richiesta GET per lista ricette
+/**
+ * @apiDefine Response Success-Response
+ */
+
+/**
+ * @apiDefine Parameters Parameters
+ */
+
+/**
+ * @api {get} /recipe Recipe List
+ * @apiDescription Manage GET Request for Recipe List
+ * @apiVersion 1.0.0
+ * @apiName RecipeList
+ * @apiGroup Recipe
+ * 
+ * @apiParam (Parameters) {String} recipe Recipe or Ingredient on which the research is based
+ * 
+ * @apiSuccess (Response) {JSON} resp List of recipes with title similar to the recipe title entered or which include the ingredient entered
+ *
+ * @apiSuccessExample Success-Response:
+*  HTTP/1.1 200 OK
+*  resp: [
+    "recipe": {
+        "uri": "string",
+        "label": "string",
+        "image": "string",
+        "images": {
+            "THUMBNAIL": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "SMALL": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "REGULAR": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "LARGE": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            }
+        },
+        "source": "string",
+        "url": "string",
+        "shareAs": "string",
+        "yield": 0,
+        "dietLabels": [
+            "string"
+        ],
+        "healthLabels": [
+            "string"
+        ],
+        "cautions": [
+            "string"
+        ],
+        "ingredientLines": [
+            "string"
+        ],
+        "ingredients": [
+            {
+                "text": "string",
+                "quantity": 0,
+                "measure": "string",
+                "food": "string",
+                "weight": 0,
+                "foodId": "string"
+            }
+        ],
+        "calories": 0,
+        "glycemicIndex": 0,
+        "totalCO2Emissions": 0,
+        "co2EmissionsClass": "A+",
+        "totalWeight": 0,
+        "cuisineType": [
+            "string"
+        ],
+        "mealType": [
+            "string"
+        ],
+        "dishType": [
+            "string"
+        ],
+        "totalNutrients": {},
+        "totalDaily": {},
+        "digest": [
+            {
+                "label": "string",
+                "tag": "string",
+                "schemaOrgTag": "string",
+                "total": 0,
+                "hasRDI": true,
+                "daily": 0,
+                "unit": "string",
+                "sub": {}
+            }
+        ]
+    },
+    "_links": {
+        "self": {
+            "href": "string",
+            "title": "string"
+        },
+        "next": {
+            "href": "string",
+            "title": "string"
+        }
+    }
+}]
+ * @apiError (4xx) 401 Unauthorized, <code>app_id</code> and/or <code>app_key</code> supplied to the request are invalid or correspond to another API
+ * @apiErrorExample 401 Error-Response:
+* HTTP/1.1 401
+* [
+    {
+        "status": "error",
+        "message": "Unauthorized <code>app_id</code> = xxxxxx. This <code>app_id</code> is for another API."
+    }
+]
+
+ * @apiError (4xx) 400/403 A list of errors
+ * @apiErrorExample 400/403 Error-Response:
+ * HTTP/1.1 400/403 A list of errors
+ * [
+    {
+        "errorCode": "string",
+        "message": "string",
+        "params": [
+            "string"
+        ]
+    }
+]
+ */
+
+// Manage GET Request for Recipe List
 app.get('/recipe', (req, res) => {
     axiosRecipe(req.query.recipe).then(resp => res.send(resp));
 });
 
-// Gestisce richiesta GET per singola ricetta
+/**
+ * @api {get} /singleRecipe Single Recipe
+ * @apiDescription Manage GET Request for Single Recipe
+ * @apiVersion 1.0.0
+ * @apiName SingleRecipe
+ * @apiGroup Recipe
+ *
+ * @apiParam (Parameters) {String} recipeLabel Recipe name
+ * @apiParam (Parameters) {String} selfUrl URL of the recipe to look for, taken from the recipe list obtained from the GET /recipe request
+ *
+ * @apiSuccess (Response) {JSON} resp Data related to the single recipe
+ * @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    "resp": {
+        "uri": "string",
+        "label": "string",
+        "image": "string",
+        "images": {
+            "THUMBNAIL": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "SMALL": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "REGULAR": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            },
+            "LARGE": {
+                "url": "string",
+                "width": 0,
+                "height": 0
+            }
+        },
+        "source": "string",
+        "url": "string",
+        "shareAs": "string",
+        "yield": 0,
+        "dietLabels": [
+            "string"
+        ],
+        "healthLabels": [
+            "string"
+        ],
+        "cautions": [
+            "string"
+        ],
+        "ingredientLines": [
+            "string"
+        ],
+        "ingredients": [
+            {
+                "text": "string",
+                "quantity": 0,
+                "measure": "string",
+                "food": "string",
+                "weight": 0,
+                "foodId": "string"
+            }
+        ],
+        "calories": 0,
+        "glycemicIndex": 0,
+        "totalCO2Emissions": 0,
+        "co2EmissionsClass": "A+",
+        "totalWeight": 0,
+        "cuisineType": [
+            "string"
+        ],
+        "mealType": [
+            "string"
+        ],
+        "dishType": [
+            "string"
+        ],
+        "totalNutrients": {},
+        "totalDaily": {},
+        "digest": [
+            {
+                "label": "string",
+                "tag": "string",
+                "schemaOrgTag": "string",
+                "total": 0,
+                "hasRDI": true,
+                "daily": 0,
+                "unit": "string",
+                "sub": {}
+            }
+        ]
+    }
+
+ * @apiError (4xx) 401 Unauthorized, 'app_id' e/o 'app_key' supplied to the request are invalid or correspond to another API.
+ *
+ * @apiErrorExample 401 Error-Response:
+    HTTP/1.1 401
+    [
+        {
+            "status": "error",
+            "message": "Unauthorized app_id = xxxxxx. This app_id is for another API."
+        }
+    ]
+
+ * @apiError (4xx) 400/403/404 A list of errors
+   @apiErrorExample 400/403/404 Error-Response:
+    HTTP/1.1 400/403/404
+    [
+        {
+            "errorCode": "string",
+            "message": "string",
+            "params": [
+                "string"
+            ]
+        }
+    ]
+ *
+ */
+
+// Manage GET Request for single recipe
 app.get('/singleRecipe', (req, res) => {
     let toHash = req.query.recipeLabel + 'single';
     let hash = toHash.hashCode();
@@ -471,7 +730,147 @@ app.get('/singleRecipe', (req, res) => {
     });
 });
 
-// Gestisce richiesta GET per singolo ingrediente
+/**
+ * @api {get} /singleIng Single Ingredient
+ * @apiName singleIng
+ * @apiVersion 1.0.0
+ * @apiGroup Ingredient
+ * @apiDescription Manage GET Request for Single Ingredient
+ *
+ * @apiParam (Parameters) {String} ing Ingredient to search for
+ *
+ * @apiSuccess (Response) {JSON} resp Nutritional Data related to 100gr of the given Ingredient
+ *
+ * @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    "resp": {
+        "uri": "string",
+        "calories": 0,
+        "totalWeight": 0,
+        "dietLabels": [
+            "string"
+        ],
+        "healthLabels": [
+            "string"
+        ],
+        "cautions": [
+            "string"
+        ],
+        "totalNutrients": {
+            "ENERC_KCAL": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "string"
+            },
+            "FAT": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "string"
+            },
+            "FASAT": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "string"
+            },
+            "FAMS": {},
+            "FAPU": {},
+            "CHOCDF": {},
+            "FIBTG": {},
+            "SUGAR": {},
+            "PROCNT": {},
+            "CHOLE": {},
+            "NA": {},
+            "CA": {},
+            "MG": {},
+            "K": {},
+            "FE": {},
+            "ZN": {},
+            "P": {},
+            "VITA_RAE": {},
+            "VITC": {},
+            "THIA": {},
+            "RIBF": {},
+            "NIA": {},
+            "VITB6A": {},
+            "FOLDFE": {},
+            "FOLFD": {},
+            "FOLAC": {},
+            "VITB12": {},
+            "VITD": {},
+            "TOCPHA": {},
+            "VITK1": {},
+            "WATER": {}
+        },
+        "totalDaily": {
+            "ENERC_KCAL": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "%"
+            },
+            "FAT": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "%"
+            },
+                "FASAT": {
+                "label": "string",
+                "quantity": 0.0,
+                "unit": "%"
+            },
+            "CHOCDF": {},
+            "FIBTG": {},
+            "PROCNT": {},
+            "CHOLE": {},
+            "NA": {},
+            "CA": {},
+            "MG": {},
+            "K": {},
+            "FE": {},
+            "ZN": {},
+            "P": {},
+            "VITA_RAE": {},
+            "VITC": {},
+            "THIA": {},
+            "RIBF": {},
+            "NIA": {},
+            "VITB6A": {},
+            "FOLDFE": {},
+            "VITB12": {},
+            "VITD": {},
+            "TOCPHA": {},
+            "VITK1": {}
+        },
+        "totalNutrientsKCal": {
+            "ENERC_KCAL": {
+                "label": "string",
+                "quantity": 0,
+                "unit": "kcal"
+            },
+            "PROCNT_KCAL": {
+                "label": "string",
+                "quantity": 0,
+                "unit": "kcal"
+            },
+            "FAT_KCAL": {
+                "label": "string",
+                "quantity": 0,
+                "unit": "kcal"
+            },
+            "CHOCDF_KCAL": {
+                "label": "string",
+                "quantity": 0,
+                "unit": "kcal"
+            }
+        }
+    }
+ * @apiError (304) not_modified
+ * @apiError (404) not_found The specified URL was not found or couldn't be retrieved
+ * @apiError (409) etag_missmatch The provided ETag token does not match the input data
+ * @apiError (422) unprocessable_entity Couldn't parse the recipe or extract the nutritional info
+ * @apiError (555) insufficient_quality Recipe with insufficient quality to process correctly
+ */
+
+// Manage GET Request for single ingredient
 app.get('/singleIng', (req, res) => {
     let toHash = req.query.ing + 'single';
     let hash = toHash.hashCode();
@@ -491,10 +890,104 @@ app.get('/singleIng', (req, res) => {
         });
     })
 });
+
+/**
+ * @api {get} /ingredients Single Ingredients List
+ * @apiVersion 1.0.0
+ * @apiName singleIngredientsList
+ * @apiGroup Ingredient
+ * @apiDescription Manage GET Request for ingredients list
+ *
+ * @apiParam (Parameters) {String} ing Ingredient on which the research is based
+ *
+ * @apiSuccess (Response) {String} resp List of ingredient with title similar or that include the one entered
+ *
+ * @apiSuccessExample Success-Response:
+    HTTP/1.1 200 OK
+    
+"resp": [
+    {
+        "food": {
+            "foodId": "food_b0yuze4b1g3afpanijno5abtiu28",
+            "label": "Avocado",
+            "nutrients": {
+            "ENERC_KCAL": 160,
+            "PROCNT": 2,
+            "FAT": 14.66,
+            "CHOCDF": 8.53,
+            "FIBTG": 6.7
+            },
+            "category": "Generic foods",
+            "categoryLabel": "food",
+            "image": "https://www.edamam.com/food-img/984/984a707ea8e9c6bf5f6498970a9e6d9d.jpg"
+        },
+        "measures": [
+            {
+            "uri": "URI",
+            "label": "Whole",
+            "weight": 0
+            },
+            {
+            "uri": "URI",
+            "label": "Serving",
+            "weight": 0
+            },
+            {
+            "uri": "URI",
+            "label": "Strip",
+            "weight": 0
+            },
+        ]
+    }
+]
+    
+ *
+ * @apiError (404) URLNotFound The specified <code>URL</code> was not found or couldn’t be retrieved
+ * @apiErrorExample 404 Error-Response:
+ *  HTTP/1.1 404 UrlNotFound
+    [
+        {
+            "errorCode": "string",
+            "message": "string",
+            "params": [
+                "string"
+            ]
+        }
+    ]
+ */
+
 app.get('/ingredients', (req, res) => {
     console.log('Ricevuta richiesta ing')
     axios_ing_search(req.query.ing).then(resp => res.send(resp));
 });
+
+/**
+ * @api {post} /calendar Google Calendar Event
+ * @apiVersion 1.0.0
+ * @apiName calendar
+ * @apiGroup Calendar
+ * @apiDescription Create or Modify <code>Lista della Spesa</code> Google Calendar event.
+ * <br><br> This request is divided in 2 phase:
+ * <br><br> Phase 1: Authorization
+ * <br> The first phase is based of Google API Authorization, based of <code>credential.json</code> and <code>SCOPES</code>, an <code>authUrl</code> is created, returned and displayed to the user through a <code>Bootstrap Modal</code>
+ * <br> The user will follow this <code>URL</code>, access and authorize using a Google Account, from which Google Calendar is synchronized.
+ * <br> After that the user will be redirected to <code>callback.html</code>, a simple html page that inform the user that authorization is completed and that page can be closed.
+ * <br> Simultaneously a <code>GET /oauth2callback</code> Request is sent to this Server with <code>tokenCode</code> parameter, this <code>tokenCode</code> is used to create Token, used in every request to Google Calendar API, and to store <code>token.json</code>, the token file.
+ * <br><br> Phase 2: Event insert or modify
+ * <br> The second phase is based on Google Calendar Event <code>Lista della Spesa</code> creation of modification.
+ * <br> After the user have chosen Single Ingredients and Recipes with ingredients, a JSON Object is created and sent to this Server through <code>POST /calendar</code> request.
+ * <br> If <code>Lista della spesa</code> calendar is not found, a new one is created with summary "Lista della Spesa".
+ * <br> If <code>Lista della spesa</code> event is found in calendar <code>Lista della Spesa</code>, then this will be modified with JSON Data passed.
+ * <br> If <code>Lista della spesa</code> event is not found in calendar <code>Lista della Spesa</code>, a new one is created with JSON Data passed.
+ *
+ * @apiBody {JSON} list JSON Data that summarizes Single Ingredients and Recipes with ingredients
+ *
+ * @apiSuccess (Response) {URL} authUrl Authorization URL used to authorize Google Calendar API
+ * @apiSuccess (Response) {String} string Confirmation String
+ *
+ * @apiError (500) 500 fs.readFileSync Error, the given file is not found
+ * @apiError (General Error) Err1 General Error of Google Calendar insert add or modify
+ */
 
 // Creo la var che andrà a contenere i dati forniti dall'utente
 var CALENDAR_DATA = null;
