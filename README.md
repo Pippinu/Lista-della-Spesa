@@ -56,10 +56,33 @@ Parallelamente, viene inviata un'altra richiesta asincrona a **Nutrition Analysi
         - Se il calendar *Lista della Spesa* non è presente tra i Calendar del relativo account Google ne crea uno.
         - Se il calendar è presente si verifica l'esistenza dell'evento *Lista della Spesa*, se quest'ultimo non è presente, viene creato un nuovo evento e nella descrizione vengono inseriti i dati delle ricette e degli ingredienti, se invece l'evento *Lista della Spesa* è già presente, allora viene modificata la descrizione di quest'ultimo con i dati delle ricette e degli ingredienti, senza andare a crearne uno nuovo.
 
-Per installare il progetto è necessario **Docker** ed eseguire il seguente comando dalla cartella principale del progetto:
+**IMPORTANTE**
+Per testare il seguente progetto sono necessarie le seguenti azioni: 
+1. API KEY di **EDAMAM API**
+    - Per ottenerle registrasi al seguente link: https://www.edamam.com/
+    - Creare file *.env* in *nginx/express* e creare le seguenti variabili:
+        - **EDAMAM_APP_ID_FOOD** e **EDAMAM_APP_KEY_FOOD**, rispettivamente ID e API Key per Food API
+        - **EDAMAM_APP_ID_RECIPE** e **EDAMAM_APP_KEY_RECIPE**, rispettivamente ID e API Key per Recipe API
+        - **EDAMAM_APP_ID_NUT** e **EDAMAM_APP_KEY_NUT**, rispettivamente ID e API Key per Nutrition API
 
-```docker
-docker-compose up
+2. User e Pass per **CouchDB**, creare o modificare eventuale file *.env* in *nginx/express*, *nginx/rabbitCache* e *nginx/rabbitLog* creare le variabili **COUCH_USER** e **COUCH_PASS** rispettivamente Username e Password usate per accedere a CouchDB (default *admin*/*password*)
+
+3. Abilitare Google Calendar API:
+    - Creare account Google Cloud Platform https://console.cloud.google.com
+    - Creare Nuovo Progetto
+    - Sulla sidebar, selezionare API e Servizi
+    - In alto, selezionare ABILITA API E SERVIZI
+    - Ricercare e abilitare Google Calendar API
+    - Sulla sidebar, selezione API e Servizi, poi Credenziali, successivamente selezionare CONFIGURA SCHERMATA DI CONSENSO, selezionare Esterno e riempire i vari spazi relativi al progetto
+    - Sempre in Credenziali, selezionare CREA CREDENZIALI, ID Client OAuth , Applicazione Web e **IMPORTANTE** aggiungere il seguente URI a *URL di reindirizzamento autorizzati*:
+        - http://localhost:80/callback.html
+
+    - Completato con successo il procedimento, cliccare il tasto Scarica a destra su ID Client OAuth 2.0 (sempre nella sezione Credenziali) e scaricare il file JSON.
+    - Copiare il file appena scaricato in nginx/express e rinominarlo *credentials.json*
+
+4. Il progetto è pronto per essere installato su **Docker** eseguendo il seguente comando dalla cartella principale del progetto
+```Docker
+docker-compose up -d
 ```
 
-Per testarlo, dopo aver installato il progetto su Docker ed essere sicuri che tutti i servizi sono attualmente in funzione (RabbitLog e RabbitCache tendono ad avviarsi prima di RabbitMQ implementato sulla porta 55672, quindi, spesso, non si avvieranno correttamente e sarà necessario provare ad avviarli una seconda volta da Docker) basterà ricercare sulla barra URL di un qualsiasi browser *'localhost'*.
+Dopo aver installato il progetto su **Docker** ed essere sicuri che tutti i servizi sono attualmente in funzione (*RabbitLog* e *RabbitCache* tendono ad avviarsi prima di *RabbitMQ* implementato sulla porta 55672, quindi, spesso, non si avvieranno correttamente e sarà necessario provare ad avviarli una seconda volta da **Docker**) basterà ricercare sulla barra URL di un qualsiasi browser *'localhost'*.
