@@ -78,7 +78,7 @@ Per testare il seguente progetto sono necessarie le seguenti azioni:
         - http://localhost:80/callback.html
 
     - Completato con successo il procedimento, cliccare il tasto Scarica a destra su ID Client OAuth 2.0 (sempre nella sezione Credenziali) e scaricare il file JSON.
-    - Copiare il file appena scaricato in nginx/express e rinominarlo *credentials.json*
+    - Copiare il file appena scaricato in nginx/express e rinominarlo *credentials.json* (assicurarsi che il nome del file sia esattamente questo, altrimenti si incorrerà in errore)
 
 4. Il progetto è pronto per essere installato su **Docker** eseguendo il seguente comando dalla cartella principale del progetto
 ```Docker

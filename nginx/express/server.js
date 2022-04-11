@@ -998,7 +998,7 @@ app.post('/calendar', (req, res) => {
         const credentials = fs.readFileSync('./credentials.json');
         authorize(JSON.parse(credentials), addEvent, CALENDAR_DATA).then(authUrl => {
             if(authUrl) res.send(authUrl);
-            else res.send('Procedura inserimento dati in Calendar avviata');
+            else res.send(false);
         }).catch(err1 => {
             console.log(err1);
             res.send(err1);
