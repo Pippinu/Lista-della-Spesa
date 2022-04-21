@@ -19,7 +19,7 @@ Il progetto soddisfa i requisiti:
 
 La struttura del progetto è la seguente:
 
-![alt text] (https://github.com/Pippinu/Lista-della-Spesa/blob/main/Progetto.jpeg?raw=true)
+![Alt text] (https://github.com/Pippinu/Lista-della-Spesa/blob/main/Progetto.jpeg)
 
 Gli elementi statici, *index.html*, *index.js*, *callback.html*, ecc. vengono forniti da un **NGINX WebServer**.
 
